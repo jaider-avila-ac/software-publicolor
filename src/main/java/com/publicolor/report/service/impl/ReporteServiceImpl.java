@@ -8,6 +8,7 @@ import com.publicolor.job.repository.TrabajoRepository;
 import com.publicolor.job.repository.TrabajoSpecifications;
 import com.publicolor.payment.repository.PagoRepository;
 import com.publicolor.report.dto.ReporteClienteItem;
+import com.publicolor.report.dto.ReporteConceptoItem;
 import com.publicolor.report.dto.ReporteResponse;
 import com.publicolor.report.dto.ReporteTrabajoItem;
 import com.publicolor.report.service.ReporteService;
@@ -97,6 +98,21 @@ public class ReporteServiceImpl implements ReporteService {
                 .sorted((a, b) -> b.getJobDate().compareTo(a.getJobDate()))
                 .toList();
 
+        // El reporte principal: cada concepto (producto) vendido, uno por uno, sin agrupar —
+        // aunque muestre el cliente al lado, no es un resumen por cliente.
+        List<ReporteConceptoItem> concepts = trabajos.stream()
+                .flatMap(t -> t.getConceptos().stream().map(c -> ReporteConceptoItem.builder()
+                        .jobId(t.getId())
+                        .jobCode(t.getCode())
+                        .clientName(t.getCliente().getName())
+                        .jobDate(t.getJobDate())
+                        .productType(c.getTipoProducto().getName())
+                        .description(c.getDescription())
+                        .amount(c.getTotalAmount())
+                        .build()))
+                .sorted((a, b) -> b.getJobDate().compareTo(a.getJobDate()))
+                .toList();
+
         return ReporteResponse.builder()
                 .from(from)
                 .to(to)
@@ -108,6 +124,7 @@ public class ReporteServiceImpl implements ReporteService {
                 .balance(balance)
                 .byClient(List.copyOf(porCliente.values()))
                 .jobs(jobs)
+                .concepts(concepts)
                 .build();
     }
 }
