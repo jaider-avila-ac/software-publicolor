@@ -35,11 +35,11 @@ public class DashboardServiceImpl implements DashboardService {
         BigDecimal soldToday = trabajoRepo.sumVendidoEnFecha(today);
         BigDecimal soldMonth = trabajoRepo.sumVendidoEntreFechas(firstDayOfMonth, today);
         BigDecimal soldHistoric = trabajoRepo.sumVendidoHistorico();
-        BigDecimal paidHistoric = pagoRepo.sumAmountHistorico();
+        BigDecimal paidHistoric = pagoRepo.sumCashAmountHistorico();
         BigDecimal pendingTotal = soldHistoric.subtract(paidHistoric);
 
-        BigDecimal receivedToday = pagoRepo.sumAmountEnFecha(today).add(ingresoRepo.sumAmountEnFecha(today));
-        BigDecimal receivedMonth = pagoRepo.sumAmountEntreFechas(firstDayOfMonth, today)
+        BigDecimal receivedToday = pagoRepo.sumCashAmountEnFecha(today).add(ingresoRepo.sumAmountEnFecha(today));
+        BigDecimal receivedMonth = pagoRepo.sumCashAmountEntreFechas(firstDayOfMonth, today)
                 .add(ingresoRepo.sumAmountEntreFechas(firstDayOfMonth, today));
 
         BigDecimal expensesToday = egresoRepo.sumAmountEnFecha(today);

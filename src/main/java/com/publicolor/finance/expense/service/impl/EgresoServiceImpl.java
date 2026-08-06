@@ -42,6 +42,7 @@ public class EgresoServiceImpl implements EgresoService {
         }
 
         Egreso egreso = Egreso.builder()
+                .code(generarCodigoUnico())
                 .categoria(categoria)
                 .concept(req.getConcept().trim())
                 .amount(req.getAmount())
@@ -52,9 +53,34 @@ public class EgresoServiceImpl implements EgresoService {
         return toResponse(egresoRepo.save(egreso));
     }
 
+    /** Código único (ej. "EG-0001"); igual que en trabajos, se verifica explícitamente antes de usarlo. */
+    private String generarCodigoUnico() {
+        String codigo = "EG-" + String.format("%04d", egresoRepo.siguienteConsecutivo());
+        if (egresoRepo.existsByCode(codigo)) {
+            throw new com.publicolor.shared.exception.NegocioException("No se pudo generar un código único para el egreso. Intentá de nuevo.");
+        }
+        return codigo;
+    }
+
+    @Override
+    public EgresoResponse anular(Long id, String reason) {
+        Egreso egreso = egresoRepo.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Egreso no encontrado."));
+
+        if (egreso.isAnnulled()) {
+            throw new com.publicolor.shared.exception.NegocioException("Este egreso ya está anulado.");
+        }
+
+        egreso.setAnnulled(true);
+        egreso.setAnnulledAt(com.publicolor.shared.util.TimeUtil.now());
+        egreso.setAnnulledReason(reason);
+        return toResponse(egresoRepo.save(egreso));
+    }
+
     private EgresoResponse toResponse(Egreso e) {
         return EgresoResponse.builder()
                 .id(e.getId())
+                .code(e.getCode())
                 .concept(e.getConcept())
                 .amount(e.getAmount())
                 .expenseDate(e.getExpenseDate())
@@ -62,6 +88,9 @@ public class EgresoServiceImpl implements EgresoService {
                         LookupItem.builder().id(e.getCategoria().getId()).name(e.getCategoria().getName()).build())
                 .notes(e.getNotes())
                 .createdAt(e.getCreatedAt())
+                .annulled(e.isAnnulled())
+                .annulledAt(e.getAnnulledAt())
+                .annulledReason(e.getAnnulledReason())
                 .build();
     }
 }

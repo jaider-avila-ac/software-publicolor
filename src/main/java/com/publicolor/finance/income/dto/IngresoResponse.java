@@ -11,10 +11,14 @@ import java.time.LocalDateTime;
 @Getter @Builder
 public class IngresoResponse {
     private Long id;
+    private String code;
     private String concept;
     private BigDecimal amount;
     private LocalDate incomeDate;
     private LookupItem category;
     private String notes;
     private LocalDateTime createdAt;
+    private boolean annulled;
+    private LocalDateTime annulledAt;
+    private String annulledReason;
 }

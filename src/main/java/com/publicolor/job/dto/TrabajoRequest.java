@@ -14,11 +14,11 @@ import java.util.List;
 @Getter @Setter
 public class TrabajoRequest {
 
-    @NotNull(message = "El cliente es obligatorio.")
+    /** Cliente existente. Si viene nulo, se usa clientName (se crea el cliente si no existe). */
     private Long clientId;
 
-    @NotNull(message = "El título del trabajo es obligatorio.")
-    private String title;
+    /** Nombre del cliente cuando no se selecciona uno existente; se busca o se crea automáticamente. */
+    private String clientName;
 
     @NotNull(message = "La fecha del trabajo es obligatoria.")
     private LocalDate jobDate;

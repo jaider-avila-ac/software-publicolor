@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter @Setter
 public class ConceptoTrabajoRequest {
@@ -24,9 +25,11 @@ public class ConceptoTrabajoRequest {
     @DecimalMin(value = "0.00", message = "El alto no puede ser negativo.")
     private BigDecimal height;
 
-    private Long finishId;
+    /** Uno o varios acabados a la vez (ej. mate + transparente). */
+    private List<Long> finishIds;
 
-    private Long laminationId;
+    /** Uno o varios laminados a la vez. */
+    private List<Long> laminationIds;
 
     @DecimalMin(value = "0.00", message = "El precio unitario no puede ser negativo.")
     private BigDecimal unitPrice;

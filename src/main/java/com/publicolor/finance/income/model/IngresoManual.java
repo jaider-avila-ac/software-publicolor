@@ -19,6 +19,10 @@ public class IngresoManual {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Código único (ej. "IN-0001"), se genera solo y nunca se repite entre ingresos. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "income_category_id")
     private CategoriaIngreso categoria;
@@ -40,6 +44,16 @@ public class IngresoManual {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean annulled = false;
+
+    @Column(name = "annulled_at")
+    private LocalDateTime annulledAt;
+
+    @Column(name = "annulled_reason", columnDefinition = "TEXT")
+    private String annulledReason;
 
     @PrePersist
     void prePersist() {

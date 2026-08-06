@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "payment_methods")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class MetodoPago {
+public class MetodoPago implements CatalogoEntidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

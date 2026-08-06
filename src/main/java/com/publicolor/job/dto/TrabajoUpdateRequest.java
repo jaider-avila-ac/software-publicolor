@@ -12,9 +12,6 @@ import java.time.LocalDate;
 @Getter @Setter
 public class TrabajoUpdateRequest {
 
-    @NotNull(message = "El título del trabajo es obligatorio.")
-    private String title;
-
     @NotNull(message = "La fecha del trabajo es obligatoria.")
     private LocalDate jobDate;
 

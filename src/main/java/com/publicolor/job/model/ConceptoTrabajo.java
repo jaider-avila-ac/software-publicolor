@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /** Un concepto/producto cobrado dentro de un trabajo (banner, vinilo, mug, etc.). */
 @Entity
@@ -38,13 +40,23 @@ public class ConceptoTrabajo {
     @Column(precision = 10, scale = 2)
     private BigDecimal height;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "finish_id")
-    private Acabado acabado;
+    /** Un concepto puede tener varios acabados a la vez (ej. mate + transparente). */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "job_item_finishes",
+            joinColumns = @JoinColumn(name = "job_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "finish_id"))
+    @Builder.Default
+    private Set<Acabado> acabados = new LinkedHashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lamination_id")
-    private Laminado laminado;
+    /** Un concepto puede tener varios laminados a la vez. */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "job_item_laminations",
+            joinColumns = @JoinColumn(name = "job_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "lamination_id"))
+    @Builder.Default
+    private Set<Laminado> laminados = new LinkedHashSet<>();
 
     @Column(name = "unit_price", precision = 14, scale = 2)
     private BigDecimal unitPrice;

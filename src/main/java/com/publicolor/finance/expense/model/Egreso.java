@@ -18,6 +18,10 @@ public class Egreso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Código único (ej. "EG-0001"), se genera solo y nunca se repite entre egresos. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "expense_category_id")
     private CategoriaEgreso categoria;
@@ -39,6 +43,16 @@ public class Egreso {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean annulled = false;
+
+    @Column(name = "annulled_at")
+    private LocalDateTime annulledAt;
+
+    @Column(name = "annulled_reason", columnDefinition = "TEXT")
+    private String annulledReason;
 
     @PrePersist
     void prePersist() {

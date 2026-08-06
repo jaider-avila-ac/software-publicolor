@@ -13,11 +13,15 @@ public class ReciboResponse {
     private LocalDateTime generatedAt;
     private String businessName;
     private String clientName;
-    private String jobTitle;
+    private String jobCode;
     private List<ReciboItemResponse> items;
     private BigDecimal totalAmount;
     private BigDecimal totalPaid;
     private BigDecimal pendingAmount;
+    /** Cuánto de totalPaid vino de saldo a favor de un trabajo anterior (no de plata recibida ahora). */
+    private BigDecimal creditApplied;
+    /** Saldo a favor que el cliente todavía tiene libre después de este trabajo. */
+    private BigDecimal remainingCredit;
     private String notes;
     private String disclaimer;
 }

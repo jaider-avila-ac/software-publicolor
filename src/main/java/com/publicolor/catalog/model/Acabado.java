@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "finishes")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Acabado {
+public class Acabado implements CatalogoEntidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

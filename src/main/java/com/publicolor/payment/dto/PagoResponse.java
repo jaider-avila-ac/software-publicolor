@@ -11,10 +11,15 @@ import java.time.LocalDateTime;
 @Getter @Builder
 public class PagoResponse {
     private Long id;
+    private String code;
     private Long jobId;
     private BigDecimal amount;
     private LocalDate paymentDate;
     private LookupItem paymentMethod;
     private String notes;
+    private String origin;
     private LocalDateTime createdAt;
+    private boolean annulled;
+    private LocalDateTime annulledAt;
+    private String annulledReason;
 }

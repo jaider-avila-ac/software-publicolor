@@ -27,6 +27,11 @@ public class Trabajo {
     @Column(name = "consecutive_number", nullable = false, unique = true)
     private Long consecutiveNumber;
 
+    /** Código único del trabajo (ej. "OT-0009"), se genera solo y nunca se repite entre trabajos. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
+    /** Snapshot histórico; el título que se muestra siempre se arma en caliente con getDisplayTitle(). */
     @Column(nullable = false, length = 200)
     private String title;
 
@@ -53,6 +58,12 @@ public class Trabajo {
     @OneToMany(mappedBy = "trabajo", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ConceptoTrabajo> conceptos = new ArrayList<>();
+
+    /** Título mostrado en toda la app: nombre del cliente actual + código, nunca queda desactualizado. */
+    public String getDisplayTitle() {
+        String nombreCliente = cliente != null ? cliente.getName() : "";
+        return nombreCliente + " - " + code;
+    }
 
     @PrePersist
     void prePersist() {

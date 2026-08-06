@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter @Builder
 public class ConceptoTrabajoResponse {
@@ -14,8 +15,8 @@ public class ConceptoTrabajoResponse {
     private BigDecimal quantity;
     private BigDecimal width;
     private BigDecimal height;
-    private LookupItem finish;
-    private LookupItem lamination;
+    private List<LookupItem> finishes;
+    private List<LookupItem> laminations;
     private BigDecimal unitPrice;
     private BigDecimal totalAmount;
     private String notes;

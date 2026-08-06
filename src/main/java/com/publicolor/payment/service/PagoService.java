@@ -9,4 +9,5 @@ public interface PagoService {
     PagoResponse registrar(PagoRequest req);
     List<PagoResponse> listarPorTrabajo(Long jobId);
     List<PagoResponse> listarPorCliente(Long clientId);
+    PagoResponse anular(Long id, String reason);
 }

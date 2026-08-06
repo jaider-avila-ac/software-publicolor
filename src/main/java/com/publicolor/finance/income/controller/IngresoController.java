@@ -2,7 +2,9 @@ package com.publicolor.finance.income.controller;
 
 import com.publicolor.finance.income.dto.IngresoRequest;
 import com.publicolor.finance.income.dto.IngresoResponse;
+import com.publicolor.finance.income.dto.IngresoUnificadoResponse;
 import com.publicolor.finance.income.service.IngresoService;
+import com.publicolor.shared.dto.AnularRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/incomes")
@@ -33,8 +36,23 @@ public class IngresoController {
         return ResponseEntity.ok(ingresoService.listar(categoryId, from, to, pageable));
     }
 
+    /** Ingresos manuales + abonos a trabajos, juntos y ordenados por fecha. */
+    @GetMapping("/combined")
+    public ResponseEntity<List<IngresoUnificadoResponse>> listarUnificado(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(ingresoService.listarUnificado(categoryId, from, to));
+    }
+
     @PostMapping
     public ResponseEntity<IngresoResponse> crear(@Valid @RequestBody IngresoRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ingresoService.crear(req));
+    }
+
+    @PostMapping("/{id}/annul")
+    public ResponseEntity<IngresoResponse> anular(@PathVariable Long id, @RequestBody(required = false) AnularRequest req) {
+        String reason = req == null ? null : req.getReason();
+        return ResponseEntity.ok(ingresoService.anular(id, reason));
     }
 }

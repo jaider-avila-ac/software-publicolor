@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface TrabajoRepository extends JpaRepository<Trabajo, Long>, JpaSpecificationExecutor<Trabajo> {
 
@@ -36,6 +37,10 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Long>, JpaSpec
     BigDecimal sumVendidoPorCliente(@Param("clientId") Long clientId);
 
     boolean existsByCliente_Id(Long clienteId);
+
+    boolean existsByCode(String code);
+
+    Optional<Trabajo> findFirstByCliente_IdAndStatusIn(Long clienteId, List<EstadoCuenta> estados);
 
     @Query(value = "select nextval('job_consecutive_seq')", nativeQuery = true)
     Long siguienteConsecutivo();

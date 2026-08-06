@@ -9,6 +9,7 @@ import com.publicolor.job.repository.TrabajoSpecifications;
 import com.publicolor.payment.repository.PagoRepository;
 import com.publicolor.report.dto.ReporteClienteItem;
 import com.publicolor.report.dto.ReporteResponse;
+import com.publicolor.report.dto.ReporteTrabajoItem;
 import com.publicolor.report.service.ReporteService;
 import com.publicolor.shared.util.TimeUtil;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class ReporteServiceImpl implements ReporteService {
 
         BigDecimal totalIngresosManuales = ingresoRepo.sumAmountEntreFechas(desde, hasta);
         BigDecimal totalEgresos = egresoRepo.sumAmountEntreFechas(desde, hasta);
-        BigDecimal totalRecibido = pagoRepo.sumAmountEntreFechas(desde, hasta).add(totalIngresosManuales);
+        BigDecimal totalRecibido = pagoRepo.sumCashAmountEntreFechas(desde, hasta).add(totalIngresosManuales);
         BigDecimal balance = totalRecibido.subtract(totalEgresos);
 
         Map<Long, ReporteClienteItem> porCliente = new LinkedHashMap<>();
@@ -73,6 +74,22 @@ public class ReporteServiceImpl implements ReporteService {
                     .build());
         }
 
+        List<ReporteTrabajoItem> jobs = trabajos.stream()
+                .map(t -> {
+                    BigDecimal pagado = pagadoPorTrabajo.get(t.getId());
+                    return ReporteTrabajoItem.builder()
+                            .jobId(t.getId())
+                            .code(t.getCode())
+                            .clientName(t.getCliente().getName())
+                            .jobDate(t.getJobDate())
+                            .totalAmount(t.getTotalAmount())
+                            .totalPending(t.getTotalAmount().subtract(pagado))
+                            .status(t.getStatus().name())
+                            .build();
+                })
+                .sorted((a, b) -> b.getJobDate().compareTo(a.getJobDate()))
+                .toList();
+
         return ReporteResponse.builder()
                 .from(from)
                 .to(to)
@@ -83,6 +100,7 @@ public class ReporteServiceImpl implements ReporteService {
                 .totalExpenses(totalEgresos)
                 .balance(balance)
                 .byClient(List.copyOf(porCliente.values()))
+                .jobs(jobs)
                 .build();
     }
 }

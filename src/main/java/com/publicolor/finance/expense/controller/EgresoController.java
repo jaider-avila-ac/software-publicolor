@@ -3,6 +3,7 @@ package com.publicolor.finance.expense.controller;
 import com.publicolor.finance.expense.dto.EgresoRequest;
 import com.publicolor.finance.expense.dto.EgresoResponse;
 import com.publicolor.finance.expense.service.EgresoService;
+import com.publicolor.shared.dto.AnularRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,5 +37,11 @@ public class EgresoController {
     @PostMapping
     public ResponseEntity<EgresoResponse> crear(@Valid @RequestBody EgresoRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(egresoService.crear(req));
+    }
+
+    @PostMapping("/{id}/annul")
+    public ResponseEntity<EgresoResponse> anular(@PathVariable Long id, @RequestBody(required = false) AnularRequest req) {
+        String reason = req == null ? null : req.getReason();
+        return ResponseEntity.ok(egresoService.anular(id, reason));
     }
 }

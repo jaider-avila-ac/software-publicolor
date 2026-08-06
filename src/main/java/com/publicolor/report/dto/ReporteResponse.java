@@ -18,4 +18,5 @@ public class ReporteResponse {
     private BigDecimal totalExpenses;
     private BigDecimal balance;
     private List<ReporteClienteItem> byClient;
+    private List<ReporteTrabajoItem> jobs;
 }

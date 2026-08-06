@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "income_categories")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class CategoriaIngreso {
+public class CategoriaIngreso implements CatalogoEntidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -52,6 +52,7 @@ public class PagoServiceImpl implements PagoService {
         }
 
         Pago pago = Pago.builder()
+                .code(generarCodigoUnico())
                 .trabajo(trabajo)
                 .metodoPago(metodoPago)
                 .amount(req.getAmount())
@@ -63,6 +64,15 @@ public class PagoServiceImpl implements PagoService {
         trabajoService.recalcularEstado(trabajo);
 
         return toResponse(guardado);
+    }
+
+    /** Código único (ej. "AB-0001"); igual que en trabajos/egresos/ingresos, se verifica explícitamente antes de usarlo. */
+    private String generarCodigoUnico() {
+        String codigo = "AB-" + String.format("%04d", pagoRepo.siguienteConsecutivo());
+        if (pagoRepo.existsByCode(codigo)) {
+            throw new com.publicolor.shared.exception.NegocioException("No se pudo generar un código único para el pago. Intentá de nuevo.");
+        }
+        return codigo;
     }
 
     @Override
@@ -77,16 +87,41 @@ public class PagoServiceImpl implements PagoService {
         return pagoRepo.findByTrabajo_Cliente_IdOrderByPaymentDateDesc(clientId).stream().map(this::toResponse).toList();
     }
 
+    @Override
+    public PagoResponse anular(Long id, String reason) {
+        Pago pago = pagoRepo.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Pago no encontrado."));
+
+        if (pago.isAnnulled()) {
+            throw new com.publicolor.shared.exception.NegocioException("Este pago ya está anulado.");
+        }
+
+        pago.setAnnulled(true);
+        pago.setAnnulledAt(com.publicolor.shared.util.TimeUtil.now());
+        pago.setAnnulledReason(reason);
+        Pago guardado = pagoRepo.save(pago);
+
+        // El trabajo pierde ese pago de sus totales: puede volver a ABIERTA o PARCIALMENTE_PAGADA.
+        trabajoService.recalcularEstado(pago.getTrabajo());
+
+        return toResponse(guardado);
+    }
+
     private PagoResponse toResponse(Pago p) {
         return PagoResponse.builder()
                 .id(p.getId())
+                .code(p.getCode())
                 .jobId(p.getTrabajo().getId())
                 .amount(p.getAmount())
                 .paymentDate(p.getPaymentDate())
                 .paymentMethod(p.getMetodoPago() == null ? null :
                         LookupItem.builder().id(p.getMetodoPago().getId()).name(p.getMetodoPago().getName()).build())
                 .notes(p.getNotes())
+                .origin(p.getOrigin().name())
                 .createdAt(p.getCreatedAt())
+                .annulled(p.isAnnulled())
+                .annulledAt(p.getAnnulledAt())
+                .annulledReason(p.getAnnulledReason())
                 .build();
     }
 }

@@ -13,11 +13,13 @@ import java.util.List;
 public class TrabajoResponse {
     private Long id;
     private Long consecutiveNumber;
+    private String code;
     private LookupItem client;
     private String title;
     private BigDecimal totalAmount;
     private BigDecimal totalPaid;
     private BigDecimal pendingAmount;
+    private BigDecimal creditApplied;
     private String status;
     private String notes;
     private LocalDate jobDate;

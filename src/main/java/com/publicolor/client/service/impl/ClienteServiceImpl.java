@@ -48,7 +48,7 @@ public class ClienteServiceImpl implements ClienteService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado."));
 
         BigDecimal comprado = trabajoRepo.sumVendidoPorCliente(id);
-        BigDecimal pagado = pagoRepo.sumAmountByClientId(id);
+        BigDecimal pagado = pagoRepo.sumCashAmountByClientId(id);
 
         return ClienteDetalleResponse.builder()
                 .id(cliente.getId())
@@ -83,7 +83,7 @@ public class ClienteServiceImpl implements ClienteService {
 
     private ClienteResponse toResponse(Cliente c) {
         BigDecimal comprado = trabajoRepo.sumVendidoPorCliente(c.getId());
-        BigDecimal pagado = pagoRepo.sumAmountByClientId(c.getId());
+        BigDecimal pagado = pagoRepo.sumCashAmountByClientId(c.getId());
         return ClienteResponse.builder()
                 .id(c.getId())
                 .name(c.getName())

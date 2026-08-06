@@ -2,6 +2,7 @@ package com.publicolor.receipt.service.impl;
 
 import com.publicolor.job.model.ConceptoTrabajo;
 import com.publicolor.job.model.Trabajo;
+import com.publicolor.job.repository.TrabajoRepository;
 import com.publicolor.job.service.TrabajoService;
 import com.publicolor.payment.repository.PagoRepository;
 import com.publicolor.receipt.dto.ReciboItemResponse;
@@ -25,6 +26,7 @@ public class ReciboServiceImpl implements ReciboService {
             "Este documento corresponde a un cobro y no certifica la realización del pago.";
 
     private final TrabajoService trabajoService;
+    private final TrabajoRepository trabajoRepo;
     private final PagoRepository pagoRepo;
     private final ReciboCobroRepository reciboRepo;
 
@@ -40,6 +42,15 @@ public class ReciboServiceImpl implements ReciboService {
 
         BigDecimal totalPagado = pagoRepo.sumAmountByTrabajoId(jobId);
         BigDecimal pendiente = trabajo.getTotalAmount().subtract(totalPagado);
+        BigDecimal creditoAplicado = pagoRepo.sumCreditAppliedByTrabajoId(jobId);
+
+        Long clienteId = trabajo.getCliente().getId();
+        BigDecimal compradoCliente = trabajoRepo.sumVendidoPorCliente(clienteId);
+        BigDecimal pagadoEfectivoCliente = pagoRepo.sumCashAmountByClientId(clienteId);
+        BigDecimal saldoRestante = pagadoEfectivoCliente.subtract(compradoCliente);
+        if (saldoRestante.compareTo(BigDecimal.ZERO) < 0) {
+            saldoRestante = BigDecimal.ZERO;
+        }
 
         var items = trabajo.getConceptos().stream()
                 .map(this::toItemResponse)
@@ -50,11 +61,13 @@ public class ReciboServiceImpl implements ReciboService {
                 .generatedAt(TimeUtil.now())
                 .businessName("Publicolor")
                 .clientName(trabajo.getCliente().getName())
-                .jobTitle(trabajo.getTitle())
+                .jobCode(trabajo.getCode())
                 .items(items)
                 .totalAmount(trabajo.getTotalAmount())
                 .totalPaid(totalPagado)
                 .pendingAmount(pendiente)
+                .creditApplied(creditoAplicado)
+                .remainingCredit(saldoRestante)
                 .notes(trabajo.getNotes())
                 .disclaimer(DISCLAIMER)
                 .build();
@@ -64,6 +77,9 @@ public class ReciboServiceImpl implements ReciboService {
         return ReciboItemResponse.builder()
                 .productType(c.getTipoProducto().getName())
                 .description(c.getDescription())
+                .finishes(c.getAcabados().stream().map(a -> a.getName()).toList())
+                .laminations(c.getLaminados().stream().map(l -> l.getName()).toList())
+                .notes(c.getNotes())
                 .totalAmount(c.getTotalAmount())
                 .build();
     }

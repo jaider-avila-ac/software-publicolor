@@ -10,4 +10,5 @@ import java.time.LocalDate;
 public interface EgresoService {
     Page<EgresoResponse> listar(Long categoryId, LocalDate from, LocalDate to, Pageable pageable);
     EgresoResponse crear(EgresoRequest req);
+    EgresoResponse anular(Long id, String reason);
 }
