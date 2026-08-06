@@ -36,6 +36,14 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     @Query("select coalesce(sum(p.amount), 0) from Pago p where p.trabajo.id = :jobId and p.origin = 'CREDIT_APPLIED' and p.annulled = false")
     BigDecimal sumCreditAppliedByTrabajoId(@Param("jobId") Long jobId);
 
+    /**
+     * Solo plata real recibida en un trabajo puntual (excluye crédito reasignado desde otro trabajo).
+     * Para totales agregados (reportes) — evita contar el mismo dinero dos veces cuando un cliente
+     * usa saldo a favor entre dos trabajos.
+     */
+    @Query("select coalesce(sum(p.amount), 0) from Pago p where p.trabajo.id = :jobId and p.origin = 'CASH' and p.annulled = false")
+    BigDecimal sumCashAmountByTrabajoId(@Param("jobId") Long jobId);
+
     /** Solo plata real recibida de un cliente (excluye reasignaciones de crédito y pagos anulados). */
     @Query("select coalesce(sum(p.amount), 0) from Pago p where p.trabajo.cliente.id = :clientId and p.origin = 'CASH' and p.annulled = false")
     BigDecimal sumCashAmountByClientId(@Param("clientId") Long clientId);

@@ -122,7 +122,7 @@ public class IngresoServiceImpl implements IngresoService {
                 resultado.add(IngresoUnificadoResponse.builder()
                         .id(p.getId())
                         .code(p.getCode())
-                        .concept("Abono — " + p.getTrabajo().getCliente().getName())
+                        .concept("Pago — " + p.getTrabajo().getCliente().getName())
                         .amount(p.getAmount())
                         .date(p.getPaymentDate())
                         .category(null)

@@ -45,13 +45,20 @@ public class ReporteServiceImpl implements ReporteService {
                 .map(Trabajo::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Dos mapas separados a propósito: "pagadoPorTrabajo" (efectivo + crédito aplicado) sirve
+        // para saber si CADA trabajo puntual está saldado. "pagadoCashPorTrabajo" (solo efectivo real)
+        // sirve para los TOTALES agregados — si se usara el primero ahí, el crédito reasignado entre
+        // dos trabajos del mismo cliente se contaría dos veces (una al "sobrar" en el trabajo de
+        // origen, otra al "pagar" el trabajo de destino) y el pendiente saldría de menos.
         Map<Long, BigDecimal> pagadoPorTrabajo = new LinkedHashMap<>();
+        Map<Long, BigDecimal> pagadoCashPorTrabajo = new LinkedHashMap<>();
         for (Trabajo t : trabajos) {
             pagadoPorTrabajo.put(t.getId(), pagoRepo.sumAmountByTrabajoId(t.getId()));
+            pagadoCashPorTrabajo.put(t.getId(), pagoRepo.sumCashAmountByTrabajoId(t.getId()));
         }
-        BigDecimal totalPagadoDeEstosTrabajos = pagadoPorTrabajo.values().stream()
+        BigDecimal totalPagadoCashDeEstosTrabajos = pagadoCashPorTrabajo.values().stream()
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalPendiente = totalVendido.subtract(totalPagadoDeEstosTrabajos);
+        BigDecimal totalPendiente = totalVendido.subtract(totalPagadoCashDeEstosTrabajos);
 
         BigDecimal totalIngresosManuales = ingresoRepo.sumAmountEntreFechas(desde, hasta);
         BigDecimal totalEgresos = egresoRepo.sumAmountEntreFechas(desde, hasta);
@@ -61,11 +68,11 @@ public class ReporteServiceImpl implements ReporteService {
         Map<Long, ReporteClienteItem> porCliente = new LinkedHashMap<>();
         for (Trabajo t : trabajos) {
             Long cid = t.getCliente().getId();
-            BigDecimal pagado = pagadoPorTrabajo.get(t.getId());
+            BigDecimal pagadoCash = pagadoCashPorTrabajo.get(t.getId());
             ReporteClienteItem actual = porCliente.get(cid);
             BigDecimal vendidoAcumulado = (actual == null ? BigDecimal.ZERO : actual.getTotalSold()).add(t.getTotalAmount());
             BigDecimal pendienteAcumulado = (actual == null ? BigDecimal.ZERO : actual.getTotalPending())
-                    .add(t.getTotalAmount().subtract(pagado));
+                    .add(t.getTotalAmount().subtract(pagadoCash));
             porCliente.put(cid, ReporteClienteItem.builder()
                     .clientId(cid)
                     .clientName(t.getCliente().getName())

@@ -103,8 +103,8 @@ public class ReportePdfServiceImpl implements ReportePdfService {
             for (Pago p : pagoRepo.findByPaymentDateBetweenAndOriginAndAnnulledFalseOrderByPaymentDateAsc(from, to, OrigenPago.CASH)) {
                 movimientos.add(new Movimiento(
                         p.getPaymentDate(), "Ingreso", p.getCode(),
-                        "Abono — " + p.getTrabajo().getCode() + " · " + p.getTrabajo().getCliente().getName(),
-                        "Abono a trabajo", p.getAmount()));
+                        "Pago — " + p.getTrabajo().getCode() + " · " + p.getTrabajo().getCliente().getName(),
+                        "Pago a trabajo", p.getAmount()));
             }
         }
         if (tipo == TipoReportePdf.EXPENSES || tipo == TipoReportePdf.BOTH) {

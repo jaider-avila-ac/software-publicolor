@@ -142,7 +142,7 @@ public class TrabajoServiceImpl implements TrabajoService {
 
     /** Código único para el pago de crédito auto-aplicado; mismo patrón que los demás pagos. */
     private String generarCodigoPagoUnico() {
-        String codigo = "AB-" + String.format("%04d", pagoRepo.siguienteConsecutivo());
+        String codigo = "PG-" + String.format("%04d", pagoRepo.siguienteConsecutivo());
         if (pagoRepo.existsByCode(codigo)) {
             throw new NegocioException("No se pudo generar un código único para el pago. Intentá de nuevo.");
         }

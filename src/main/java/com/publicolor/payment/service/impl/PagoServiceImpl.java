@@ -42,7 +42,7 @@ public class PagoServiceImpl implements PagoService {
 
         if (req.getAmount().compareTo(pendiente) > 0 && !req.isForceOverpay()) {
             throw new ConfirmacionRequeridaException(
-                    "El abono supera el saldo pendiente ($" + pendiente + "). Confirmá para registrarlo de todas formas.");
+                    "El pago supera el saldo pendiente ($" + pendiente + "). Confirmá para registrarlo de todas formas.");
         }
 
         MetodoPago metodoPago = null;
@@ -66,9 +66,9 @@ public class PagoServiceImpl implements PagoService {
         return toResponse(guardado);
     }
 
-    /** Código único (ej. "AB-0001"); igual que en trabajos/egresos/ingresos, se verifica explícitamente antes de usarlo. */
+    /** Código único (ej. "PG-0001"); igual que en trabajos/egresos/ingresos, se verifica explícitamente antes de usarlo. */
     private String generarCodigoUnico() {
-        String codigo = "AB-" + String.format("%04d", pagoRepo.siguienteConsecutivo());
+        String codigo = "PG-" + String.format("%04d", pagoRepo.siguienteConsecutivo());
         if (pagoRepo.existsByCode(codigo)) {
             throw new com.publicolor.shared.exception.NegocioException("No se pudo generar un código único para el pago. Intentá de nuevo.");
         }
