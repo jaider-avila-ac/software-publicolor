@@ -1,16 +1,21 @@
 package com.publicolor.report.service.impl;
 
+import com.publicolor.finance.expense.model.Egreso;
 import com.publicolor.finance.expense.repository.EgresoRepository;
+import com.publicolor.finance.income.model.IngresoManual;
 import com.publicolor.finance.income.repository.IngresoManualRepository;
 import com.publicolor.job.model.EstadoCuenta;
 import com.publicolor.job.model.Trabajo;
 import com.publicolor.job.repository.TrabajoRepository;
 import com.publicolor.job.repository.TrabajoSpecifications;
+import com.publicolor.payment.model.OrigenPago;
+import com.publicolor.payment.model.Pago;
 import com.publicolor.payment.repository.PagoRepository;
 import com.publicolor.report.dto.ReporteClienteItem;
 import com.publicolor.report.dto.ReporteConceptoItem;
 import com.publicolor.report.dto.ReporteResponse;
 import com.publicolor.report.dto.ReporteTrabajoItem;
+import com.publicolor.report.dto.TipoReportePdf;
 import com.publicolor.report.service.ReporteService;
 import com.publicolor.shared.util.TimeUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +42,7 @@ public class ReporteServiceImpl implements ReporteService {
     private final EgresoRepository egresoRepo;
 
     @Override
-    public ReporteResponse generar(Long clientId, EstadoCuenta status, LocalDate from, LocalDate to) {
+    public ReporteResponse generar(Long clientId, EstadoCuenta status, LocalDate from, LocalDate to, TipoReportePdf movementType) {
         LocalDate desde = from != null ? from : DESDE_SIEMPRE;
         LocalDate hasta = to != null ? to : TimeUtil.today();
 
@@ -98,20 +104,10 @@ public class ReporteServiceImpl implements ReporteService {
                 .sorted((a, b) -> b.getJobDate().compareTo(a.getJobDate()))
                 .toList();
 
-        // El reporte principal: cada concepto (producto) vendido, uno por uno, sin agrupar —
-        // aunque muestre el cliente al lado, no es un resumen por cliente.
-        List<ReporteConceptoItem> concepts = trabajos.stream()
-                .flatMap(t -> t.getConceptos().stream().map(c -> ReporteConceptoItem.builder()
-                        .jobId(t.getId())
-                        .jobCode(t.getCode())
-                        .clientName(t.getCliente().getName())
-                        .jobDate(t.getJobDate())
-                        .productType(c.getTipoProducto().getName())
-                        .description(c.getDescription())
-                        .amount(c.getTotalAmount())
-                        .build()))
-                .sorted((a, b) -> b.getJobDate().compareTo(a.getJobDate()))
-                .toList();
+        // Listado de movimientos (ingresos y/o egresos, uno por uno, sin agrupar) — independiente
+        // de los filtros de cliente/estado, igual que el PDF exportable, solo por rango de fechas.
+        List<ReporteConceptoItem> concepts = obtenerMovimientos(
+                movementType == null ? TipoReportePdf.BOTH : movementType, desde, hasta);
 
         return ReporteResponse.builder()
                 .from(from)
@@ -126,5 +122,53 @@ public class ReporteServiceImpl implements ReporteService {
                 .jobs(jobs)
                 .concepts(concepts)
                 .build();
+    }
+
+    /**
+     * Ingresos y/o egresos, uno por uno, según lo que se haya pedido con {@code tipo}.
+     * Un pago en efectivo a un trabajo cuenta como ingreso acá, igual que en el dashboard
+     * y en el PDF exportable — el crédito auto-aplicado no se lista porque no es plata nueva.
+     */
+    private List<ReporteConceptoItem> obtenerMovimientos(TipoReportePdf tipo, LocalDate desde, LocalDate hasta) {
+        List<ReporteConceptoItem> movimientos = new ArrayList<>();
+
+        if (tipo == TipoReportePdf.INCOMES || tipo == TipoReportePdf.BOTH) {
+            for (IngresoManual i : ingresoRepo.findByIncomeDateBetweenAndAnnulledFalseOrderByIncomeDateAsc(desde, hasta)) {
+                movimientos.add(ReporteConceptoItem.builder()
+                        .date(i.getIncomeDate())
+                        .type("INCOME")
+                        .code(i.getCode())
+                        .concept(i.getConcept())
+                        .category(i.getCategoria() == null ? null : i.getCategoria().getName())
+                        .amount(i.getAmount())
+                        .build());
+            }
+            for (Pago p : pagoRepo.findByPaymentDateBetweenAndOriginAndAnnulledFalseOrderByPaymentDateAsc(desde, hasta, OrigenPago.CASH)) {
+                movimientos.add(ReporteConceptoItem.builder()
+                        .date(p.getPaymentDate())
+                        .type("INCOME")
+                        .code(p.getCode())
+                        .concept("Pago — " + p.getTrabajo().getCode())
+                        .category("Pago a trabajo")
+                        .clientName(p.getTrabajo().getCliente().getName())
+                        .jobCode(p.getTrabajo().getCode())
+                        .amount(p.getAmount())
+                        .build());
+            }
+        }
+        if (tipo == TipoReportePdf.EXPENSES || tipo == TipoReportePdf.BOTH) {
+            for (Egreso e : egresoRepo.findByExpenseDateBetweenAndAnnulledFalseOrderByExpenseDateAsc(desde, hasta)) {
+                movimientos.add(ReporteConceptoItem.builder()
+                        .date(e.getExpenseDate())
+                        .type("EXPENSE")
+                        .code(e.getCode())
+                        .concept(e.getConcept())
+                        .category(e.getCategoria() == null ? null : e.getCategoria().getName())
+                        .amount(e.getAmount())
+                        .build());
+            }
+        }
+        movimientos.sort((a, b) -> b.getDate().compareTo(a.getDate()));
+        return movimientos;
     }
 }

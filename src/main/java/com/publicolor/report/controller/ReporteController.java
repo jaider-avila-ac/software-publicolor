@@ -33,8 +33,9 @@ public class ReporteController {
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) EstadoCuenta status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(reporteService.generar(clientId, status, from, to));
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false, defaultValue = "BOTH") TipoReportePdf type) {
+        return ResponseEntity.ok(reporteService.generar(clientId, status, from, to, type));
     }
 
     /** Tabla simple de ingresos y/o egresos en un rango de fechas, lista para imprimir. */
