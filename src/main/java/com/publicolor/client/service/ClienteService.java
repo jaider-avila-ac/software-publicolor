@@ -11,4 +11,5 @@ public interface ClienteService {
     ClienteDetalleResponse obtenerDetalle(Long id);
     ClienteResponse crear(ClienteRequest req);
     ClienteResponse actualizar(Long id, ClienteRequest req);
+    void eliminar(Long id);
 }

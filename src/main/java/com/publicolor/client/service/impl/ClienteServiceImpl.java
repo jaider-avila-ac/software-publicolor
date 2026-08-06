@@ -9,6 +9,7 @@ import com.publicolor.client.service.ClienteService;
 import com.publicolor.job.service.TrabajoService;
 import com.publicolor.payment.repository.PagoRepository;
 import com.publicolor.payment.service.PagoService;
+import com.publicolor.shared.exception.MovimientosFinancierosException;
 import com.publicolor.shared.exception.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -74,6 +75,19 @@ public class ClienteServiceImpl implements ClienteService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado."));
         cliente.setName(normalizar(req.getName()));
         return toResponse(clienteRepo.save(cliente));
+    }
+
+    @Override
+    public void eliminar(Long id) {
+        Cliente cliente = clienteRepo.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado."));
+
+        if (trabajoRepo.existsByCliente_Id(id)) {
+            throw new MovimientosFinancierosException(
+                    "Este cliente tiene trabajos registrados; no se puede eliminar.");
+        }
+
+        clienteRepo.delete(cliente);
     }
 
     /** El nombre del cliente siempre se guarda en mayúsculas, sin espacios sobrantes. */

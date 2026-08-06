@@ -43,4 +43,10 @@ public class ClienteController {
     public ResponseEntity<ClienteResponse> actualizar(@PathVariable Long id, @Valid @RequestBody ClienteRequest req) {
         return ResponseEntity.ok(clienteService.actualizar(id, req));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        clienteService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

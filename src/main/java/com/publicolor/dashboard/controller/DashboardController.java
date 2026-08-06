@@ -1,13 +1,17 @@
 package com.publicolor.dashboard.controller;
 
 import com.publicolor.dashboard.dto.DashboardResponse;
+import com.publicolor.dashboard.dto.IngresoChartPoint;
 import com.publicolor.dashboard.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/dashboard")
@@ -20,5 +24,11 @@ public class DashboardController {
     @GetMapping
     public ResponseEntity<DashboardResponse> obtener() {
         return ResponseEntity.ok(dashboardService.obtener());
+    }
+
+    @GetMapping("/income-chart")
+    public ResponseEntity<List<IngresoChartPoint>> obtenerGraficoIngresos(
+            @RequestParam(defaultValue = "day") String granularity) {
+        return ResponseEntity.ok(dashboardService.obtenerGraficoIngresos(granularity));
     }
 }
